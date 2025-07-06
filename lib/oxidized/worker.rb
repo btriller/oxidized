@@ -109,6 +109,14 @@ module Oxidized
     def run_done_hook
       Oxidized.logger.debug "lib/oxidized/worker.rb: Running :nodes_done hook"
       Oxidized.hooks.handle :nodes_done
+      begin
+        while true
+          Process.waitpid(-1, Process::WUNTRACED)
+          Oxidized.logger.debug "lib/oxidized/worker.rb: Got child's exit status: #{$?}"
+        end
+      rescue SystemCallError => e
+        Oxidized.logger.error "lib/oxidized/worker.rb: #{e.message}"
+      end
     rescue StandardError => e
       # swallow the hook erros and continue as normal
       Oxidized.logger.error "lib/oxidized/worker.rb: #{e.message}"
